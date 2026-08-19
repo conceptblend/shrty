@@ -43,15 +43,25 @@ Visit `http://localhost:5173/a/<hash>` in a browser (the dashboard is served by 
 
 Copy `.env.example` to `.env` and fill in:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `SHRTY_API_KEY` | Yes | — | Secret key for API authentication (min 16 chars) |
-| `DATABASE_URL` | Yes | — | PostgreSQL connection string |
-| `FEISTEL_KEY` | Yes | — | Secret key for hash generation (min 16 chars) |
-| `SHRTY_DOMAIN` | No | `localhost:3000` | Domain for generated short URLs |
-| `PORT` | No | `3000` | Server port |
-| `NODE_ENV` | No | `development` | `development`, `production`, or `test` |
-| `LOG_LEVEL` | No | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+| Variable        | Required | Default          | Description                                        |
+| --------------- | -------- | ---------------- | -------------------------------------------------- |
+| `SHRTY_API_KEY` | Yes      | —                | Secret key for API authentication (min 16 chars)   |
+| `DATABASE_URL`  | Yes      | —                | PostgreSQL connection string                       |
+| `FEISTEL_KEY`   | Yes      | —                | Secret key for hash generation (min 16 chars)      |
+| `SHRTY_DOMAIN`  | No       | `localhost:3000` | Domain for generated short URLs                    |
+| `PORT`          | No       | `3000`           | Server port                                        |
+| `NODE_ENV`      | No       | `development`    | `development`, `production`, or `test`             |
+| `LOG_LEVEL`     | No       | `info`           | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+
+### Feistel Key Security
+
+`FEISTEL_KEY` is used to obfuscate sequential database IDs into short hashes. Treat it like a password:
+
+- **Store securely** — use environment variables or a secrets manager; never commit it to source control.
+- **Rotate periodically** — if the key is compromised, regenerate it and redeploy. Existing links will break (their hashes change).
+- **Restrict access** — anyone with the key can reverse any hash to its original ID.
+
+The cipher is intentionally lightweight (4-round Feistel, 32-bit halves). It provides obfuscation, not cryptographic security. The database is the source of truth; the hash is just a non-guessable alias.
 
 ## Docker
 
@@ -61,6 +71,42 @@ docker compose up -d
 
 # Or with custom env
 SHRTY_API_KEY=my-secret docker compose up -d
+```
+
+## Deploy to Fly.io
+
+```bash
+# Install flyctl and login
+curl -L https://fly.io/install.sh | sh
+fly auth login
+
+# Launch the app (select region, don't set up Postgres yet)
+fly launch
+
+# Create a managed Postgres database
+fly postgres create --name shrty-db
+
+# Attach it (sets DATABASE_URL automatically)
+fly postgres attach shrty-db
+
+# Set secrets
+TMP_API_KEY=$(openssl rand -hex 32) && echo "Store API KEY securely: $TMP_API_KEY"
+TMP_FEISTEL_KEY=$(openssl rand -hex 32) && echo "Store FEISTEL KEY securely: $TMP_FEISTEL_KEY"
+fly secrets set SHRTY_API_KEY=$TMP_API_KEY
+fly secrets set FEISTEL_KEY=$TMP_FEISTEL_KEY
+fly secrets set SHRTY_DOMAIN=shrty.fly.dev
+
+# Deploy
+fly deploy
+```
+
+After deploy, update `SHRTY_DOMAIN` in `fly.toml` to your actual domain, then `fly deploy` again.
+
+For a custom domain:
+
+```bash
+fly certs add shrty.yourdomain.com
+# Then update SHRTY_DOMAIN to shrty.yourdomain.com and redeploy
 ```
 
 ## Development
@@ -96,16 +142,16 @@ shrty/
 
 All endpoints require `Authorization: Bearer <key>` except redirects and the dashboard.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/links` | Create a short link |
-| `GET` | `/api/v1/links` | List all links (paginated) |
-| `GET` | `/api/v1/links/:hash` | Get link details |
-| `PATCH` | `/api/v1/links/:hash` | Update link |
-| `DELETE` | `/api/v1/links/:hash` | Soft-delete link |
-| `GET` | `/api/v1/analytics/:hash` | Get analytics data |
-| `GET` | `/:hash` | Redirect to destination |
-| `GET` | `/a/:hash` | Analytics dashboard |
+| Method   | Endpoint                  | Description                |
+| -------- | ------------------------- | -------------------------- |
+| `POST`   | `/api/v1/links`           | Create a short link        |
+| `GET`    | `/api/v1/links`           | List all links (paginated) |
+| `GET`    | `/api/v1/links/:hash`     | Get link details           |
+| `PATCH`  | `/api/v1/links/:hash`     | Update link                |
+| `DELETE` | `/api/v1/links/:hash`     | Soft-delete link           |
+| `GET`    | `/api/v1/analytics/:hash` | Get analytics data         |
+| `GET`    | `/:hash`                  | Redirect to destination    |
+| `GET`    | `/a/:hash`                | Analytics dashboard        |
 
 ## License
 

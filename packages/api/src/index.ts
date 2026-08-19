@@ -13,8 +13,9 @@ const app = createApp({ config, db })
 serve({
   fetch: app.fetch,
   port: config.port,
+  hostname: '0.0.0.0',
 }, () => {
-  logger.info(`Shrty running on http://localhost:${config.port}`)
+  logger.info(`Shrty running on http://0.0.0.0:${config.port}`)
 })
 
 // Graceful shutdown
