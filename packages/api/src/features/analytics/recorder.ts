@@ -43,16 +43,18 @@ export class AnalyticsRecorder {
     }
 
     // Batch insert
-    await this.db.insert(clicks).values(events.map(e => ({
-      hash: e.hash,
-      ipHash: e.ipHash,
-      referrer: e.referrer,
-      userAgent: e.userAgent,
-      deviceType: e.deviceType,
-      browser: e.browser,
-      os: e.os,
-      country: e.country,
-    })))
+    await this.db.insert(clicks).values(
+      events.map((e) => ({
+        hash: e.hash,
+        ipHash: e.ipHash,
+        referrer: e.referrer,
+        userAgent: e.userAgent,
+        deviceType: e.deviceType,
+        browser: e.browser,
+        os: e.os,
+        country: e.country,
+      })),
+    )
 
     // Batch increment click counts
     const counts = new Map<string, number>()
@@ -63,7 +65,8 @@ export class AnalyticsRecorder {
     const { links } = await import('../../db/schema.js')
     const { eq, sql } = await import('drizzle-orm')
     for (const [hash, count] of counts) {
-      await this.db.update(links)
+      await this.db
+        .update(links)
         .set({ clickCount: sql`click_count + ${count}` })
         .where(eq(links.hash, hash))
     }

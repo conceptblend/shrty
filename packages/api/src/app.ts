@@ -10,7 +10,11 @@ import { AnalyticsRecorder, subscribeAnalyticsEvents } from './features/analytic
 import { AnalyticsQuery } from './features/analytics/query.js'
 import { createAnalyticsRoutes } from './features/analytics/routes.js'
 import { createRedirectRoutes } from './features/redirects/routes.js'
-import { createAuthMiddleware, createRateLimitMiddleware, createErrorHandler } from './middleware/index.js'
+import {
+  createAuthMiddleware,
+  createRateLimitMiddleware,
+  createErrorHandler,
+} from './middleware/index.js'
 import { EventBus as EventBusClass } from './lib/events.js'
 
 type AppEnv = {

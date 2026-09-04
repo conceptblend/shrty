@@ -1,7 +1,22 @@
 const FLAGS: Record<string, string> = {
-  US: '🇺🇸', GB: '🇬🇧', DE: '🇩🇪', FR: '🇫🇷', CA: '🇨🇦', JP: '🇯🇵',
-  AU: '🇦🇺', BR: '🇧🇷', IN: '🇮🇳', KR: '🇰🇷', NL: '🇳🇱', SE: '🇸🇪',
-  ES: '🇪🇸', IT: '🇮🇹', MX: '🇲🇽', RU: '🇷🇺', CN: '🇨🇳', PL: '🇵🇱',
+  US: '🇺🇸',
+  GB: '🇬🇧',
+  DE: '🇩🇪',
+  FR: '🇫🇷',
+  CA: '🇨🇦',
+  JP: '🇯🇵',
+  AU: '🇦🇺',
+  BR: '🇧🇷',
+  IN: '🇮🇳',
+  KR: '🇰🇷',
+  NL: '🇳🇱',
+  SE: '🇸🇪',
+  ES: '🇪🇸',
+  IT: '🇮🇹',
+  MX: '🇲🇽',
+  RU: '🇷🇺',
+  CN: '🇨🇳',
+  PL: '🇵🇱',
 }
 
 interface CountryTableProps {

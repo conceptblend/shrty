@@ -1,7 +1,15 @@
 import type { Link, UpdateLinkRequest, LinkListParams, PaginatedLinks } from '@shrty/shared'
 
 export interface LinkRepository {
-  insert(data: { destinationUrl: string; expiresAt?: Date }): Promise<{ id: number; hash: string | null; destinationUrl: string; createdAt: Date; expiresAt: Date | null; isDeleted: boolean; clickCount: number }>
+  insert(data: { destinationUrl: string; expiresAt?: Date }): Promise<{
+    id: number
+    hash: string | null
+    destinationUrl: string
+    createdAt: Date
+    expiresAt: Date | null
+    isDeleted: boolean
+    clickCount: number
+  }>
   setHash(id: number, hash: string): Promise<void>
   findByHash(hash: string): Promise<Link | null>
   findByDestinationUrl(url: string): Promise<Link | null>
@@ -71,14 +79,14 @@ export class InMemoryLinkRepository implements LinkRepository {
   async list(options: LinkListParams): Promise<PaginatedLinks> {
     const limit = options.limit ?? 20
     const cursor = options.cursor ?? 0
-    const all = [...this.links.values()].filter(l => !l.isDeleted && l.hash !== '')
-    const start = all.findIndex(l => l.id > cursor)
+    const all = [...this.links.values()].filter((l) => !l.isDeleted && l.hash !== '')
+    const start = all.findIndex((l) => l.id > cursor)
     const sliced = start === -1 ? [] : all.slice(start, start + limit + 1)
     const hasMore = sliced.length > limit
     const items = sliced.slice(0, limit)
     return {
       links: items,
-      nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
+      nextCursor: hasMore ? (items[items.length - 1]?.id ?? null) : null,
     }
   }
 

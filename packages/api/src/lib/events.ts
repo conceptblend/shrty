@@ -27,7 +27,7 @@ export class EventBus {
 
   async emit<K extends keyof EventMap>(event: K, data: EventMap[K]): Promise<void> {
     const handlers = this.listeners.get(event) ?? new Set()
-    await Promise.allSettled([...handlers].map(h => h(data)))
+    await Promise.allSettled([...handlers].map((h) => h(data)))
   }
 }
 

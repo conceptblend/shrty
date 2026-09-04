@@ -14,7 +14,12 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-export function SummaryCards({ totalClicks, uniqueVisitors, topCountry, topReferrer }: SummaryCardsProps) {
+export function SummaryCards({
+  totalClicks,
+  uniqueVisitors,
+  topCountry,
+  topReferrer,
+}: SummaryCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <StatCard label="Total Clicks" value={totalClicks.toLocaleString()} />

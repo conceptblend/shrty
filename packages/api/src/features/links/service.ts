@@ -1,4 +1,11 @@
-import type { CreateLinkRequest, CreateLinkResponse, UpdateLinkRequest, LinkListParams, PaginatedLinks, Link } from '@shrty/shared'
+import type {
+  CreateLinkRequest,
+  CreateLinkResponse,
+  UpdateLinkRequest,
+  LinkListParams,
+  PaginatedLinks,
+  Link,
+} from '@shrty/shared'
 import type { LinkRepository } from './repository.js'
 import { generateHash } from '../../lib/hash.js'
 import { validateDestinationUrl } from '../../lib/validate-url.js'
@@ -13,7 +20,11 @@ export class LinkService {
   async create(request: CreateLinkRequest): Promise<CreateLinkResponse> {
     const url = validateDestinationUrl(request.url)
     if (!url) {
-      throw new LinkError('Invalid URL', 'URL must use http or https protocol and point to a non-private host', 422)
+      throw new LinkError(
+        'Invalid URL',
+        'URL must use http or https protocol and point to a non-private host',
+        422,
+      )
     }
 
     // Check for duplicate destination
@@ -61,7 +72,11 @@ export class LinkService {
     if (data.destinationUrl) {
       const url = validateDestinationUrl(data.destinationUrl)
       if (!url) {
-        throw new LinkError('Invalid URL', 'URL must use http or https protocol and point to a non-private host', 422)
+        throw new LinkError(
+          'Invalid URL',
+          'URL must use http or https protocol and point to a non-private host',
+          422,
+        )
       }
       data.destinationUrl = url.toString()
     }

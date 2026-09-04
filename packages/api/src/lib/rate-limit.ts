@@ -13,7 +13,7 @@ export class SlidingWindowRateLimiter {
   isAllowed(key: string): { allowed: boolean; remaining: number; resetMs: number } {
     const now = Date.now()
     const timestamps = this.windows.get(key) ?? []
-    const valid = timestamps.filter(t => now - t < this.windowMs)
+    const valid = timestamps.filter((t) => now - t < this.windowMs)
 
     if (valid.length < this.maxRequests) {
       valid.push(now)
@@ -37,7 +37,7 @@ export class SlidingWindowRateLimiter {
   private cleanup(): void {
     const now = Date.now()
     for (const [key, timestamps] of this.windows) {
-      const valid = timestamps.filter(t => now - t < this.windowMs)
+      const valid = timestamps.filter((t) => now - t < this.windowMs)
       if (valid.length === 0) {
         this.windows.delete(key)
       } else {

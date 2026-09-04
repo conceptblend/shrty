@@ -31,6 +31,7 @@ How does the Hono backend serve the React frontend build and handle SPA routing?
 ### Production (Docker)
 
 **Route registration order in `createApp()`:**
+
 1. `app.route('/api/v1', apiRoutes)` — API endpoints
 2. `app.use('/*', serveStatic({ root: '../../packages/web/dist' }))` — static assets (JS, CSS, images)
 3. `app.get('/a/:hash', serveStatic({ path: '../../packages/web/dist/index.html' }))` — SPA catch-all for analytics dashboard
@@ -40,9 +41,10 @@ How does the Hono backend serve the React frontend build and handle SPA routing?
 **Why this order**: Static files must be served before the redirect handler. If `/:hash` came first, it would intercept `favicon.ico`, `assets/index-xxx.js`, and other static asset requests. The redirect handler is last — it only catches paths that aren't API routes, static files, or SPA routes.
 
 **Vite config** (`packages/web/vite.config.ts`):
+
 ```typescript
 export default defineConfig({
-  base: '/',  // default — relative asset paths in HTML
+  base: '/', // default — relative asset paths in HTML
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -58,6 +60,7 @@ export default defineConfig({
 No `base` override needed — Vite's default `base: '/'` produces relative asset references that work when served from any path.
 
 **Dockerfile entrypoint:**
+
 ```sh
 #!/bin/sh
 npx drizzle-kit migrate          # apply schema migrations
@@ -65,6 +68,7 @@ exec node packages/api/dist/index.js  # start Hono server
 ```
 
 **Docker build:**
+
 ```dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -98,6 +102,7 @@ app.use('/*', serveStatic({ root: staticRoot }))
 ```
 
 Set `SHRTY_STATIC_ROOT` env var in Docker:
+
 ```yaml
 environment:
   SHRTY_STATIC_ROOT: packages/web/dist

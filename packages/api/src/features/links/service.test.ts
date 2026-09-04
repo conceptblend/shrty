@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { LinkService, LinkError } from './service.js'
 import { InMemoryLinkRepository } from './repository.js'
 import type { AppConfig } from '../../config.js'
@@ -36,18 +36,15 @@ describe('LinkService', () => {
     })
 
     it('rejects invalid URLs', async () => {
-      await expect(service.create({ url: 'not-a-url' }))
-        .rejects.toThrow(LinkError)
+      await expect(service.create({ url: 'not-a-url' })).rejects.toThrow(LinkError)
     })
 
     it('rejects javascript: URLs', async () => {
-      await expect(service.create({ url: 'javascript:alert(1)' }))
-        .rejects.toThrow(LinkError)
+      await expect(service.create({ url: 'javascript:alert(1)' })).rejects.toThrow(LinkError)
     })
 
     it('rejects private IP URLs', async () => {
-      await expect(service.create({ url: 'http://192.168.1.1/' }))
-        .rejects.toThrow(LinkError)
+      await expect(service.create({ url: 'http://192.168.1.1/' })).rejects.toThrow(LinkError)
     })
 
     it('returns existing link for duplicate destination', async () => {

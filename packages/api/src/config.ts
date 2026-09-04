@@ -14,13 +14,17 @@ const configSchema = z.object({
   staticRoot: z.string().default('../../packages/web/dist'),
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  analytics: z.object({
-    batchSize: z.coerce.number().default(100),
-    flushIntervalMs: z.coerce.number().default(5000),
-  }).default({}),
-  rateLimit: z.object({
-    createPerMinute: z.coerce.number().default(60),
-  }).default({}),
+  analytics: z
+    .object({
+      batchSize: z.coerce.number().default(100),
+      flushIntervalMs: z.coerce.number().default(5000),
+    })
+    .default({}),
+  rateLimit: z
+    .object({
+      createPerMinute: z.coerce.number().default(60),
+    })
+    .default({}),
 })
 
 export type AppConfig = z.infer<typeof configSchema>
