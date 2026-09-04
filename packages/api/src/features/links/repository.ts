@@ -1,10 +1,7 @@
 import type { Link, UpdateLinkRequest, LinkListParams, PaginatedLinks } from '@shrty/shared'
 
 export interface LinkRepository {
-  insert(data: {
-    destinationUrl: string
-    expiresAt?: Date
-  }): Promise<{
+  insert(data: { destinationUrl: string; expiresAt?: Date }): Promise<{
     id: number
     hash: string | null
     destinationUrl: string
