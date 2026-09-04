@@ -15,21 +15,22 @@ export class AnalyticsQuery {
       where: eq(links.hash, hash),
     })
 
-    const [clicksByDay, topReferrers, devices, browsers, countries, recentClicks, totalResult] = await Promise.all([
-      this.getClicksByDay(hash, since),
-      this.getTopReferrers(hash),
-      this.getDevices(hash),
-      this.getBrowsers(hash),
-      this.getCountries(hash),
-      this.getRecentClicks(hash, 20),
-      this.getTotalClicks(hash),
-    ])
+    const [clicksByDay, topReferrers, devices, browsers, countries, recentClicks, totalResult] =
+      await Promise.all([
+        this.getClicksByDay(hash, since),
+        this.getTopReferrers(hash),
+        this.getDevices(hash),
+        this.getBrowsers(hash),
+        this.getCountries(hash),
+        this.getRecentClicks(hash, 20),
+        this.getTotalClicks(hash),
+      ])
 
     const totalClicks = totalResult ?? 0
     const uniqueVisitors = await this.getUniqueVisitors(hash, since)
 
     // Calculate percentages for countries
-    const countriesWithPercentage = countries.map(c => ({
+    const countriesWithPercentage = countries.map((c) => ({
       ...c,
       percentage: totalClicks > 0 ? Math.round((c.clicks / totalClicks) * 1000) / 10 : 0,
     }))
@@ -60,7 +61,7 @@ export class AnalyticsQuery {
       .groupBy(sql`DATE(${clicks.clickedAt})`)
       .orderBy(desc(sql`DATE(${clicks.clickedAt})`))
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       date: r.date,
       clicks: r.clicks,
       uniqueVisitors: 0, // computed separately if needed
@@ -79,7 +80,7 @@ export class AnalyticsQuery {
       .orderBy(desc(drizzleCount()))
       .limit(limit)
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       referrer: r.referrer ?? 'direct',
       clicks: r.clicks,
     }))
@@ -96,7 +97,7 @@ export class AnalyticsQuery {
       .groupBy(clicks.deviceType)
       .orderBy(desc(drizzleCount()))
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       type: r.type ?? 'unknown',
       clicks: r.clicks,
     }))
@@ -114,7 +115,7 @@ export class AnalyticsQuery {
       .orderBy(desc(drizzleCount()))
       .limit(limit)
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       browser: r.browser ?? 'unknown',
       clicks: r.clicks,
     }))
@@ -132,7 +133,7 @@ export class AnalyticsQuery {
       .orderBy(desc(drizzleCount()))
       .limit(limit)
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       country: r.country ?? 'XX',
       clicks: r.clicks,
     }))
@@ -146,7 +147,7 @@ export class AnalyticsQuery {
       .orderBy(desc(clicks.clickedAt))
       .limit(limit)
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       hash: r.hash,
       clickedAt: r.clickedAt.toISOString(),
       referrer: r.referrer,

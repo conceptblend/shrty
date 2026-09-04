@@ -31,6 +31,7 @@ exec node dist/index.js
 **Clicks table partitioning**: Deferred to v2. Ship as a regular unpartitioned table in v1. Add partitioning when query performance demands it — this is a performance optimization, not a correctness issue. When ready, create a migration that converts the table to partitioned and a startup routine or cron job that creates monthly partitions ahead of time.
 
 **Development workflow**:
+
 1. Edit schema in `packages/api/src/db/schema.ts`
 2. Run `pnpm db:generate` (root script → `drizzle-kit generate`)
 3. Run `pnpm db:migrate` to apply locally

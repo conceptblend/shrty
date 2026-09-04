@@ -1,0 +1,8 @@
+node_modules
+dist
+drizzle/meta
+pnpm-lock.yaml
+*.d.ts
+*.d.ts.map
+*.js.map
+packages/shared/src/**/*.js

@@ -2,14 +2,14 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       DATABASE_URL: postgresql://shrty:shrty@postgres:5432/shrty
       SHRTY_API_KEY: ${SHRTY_API_KEY:-change-me-to-a-secret-key-at-least-16-chars}
       SHRTY_DOMAIN: ${SHRTY_DOMAIN:-localhost:3000}
       SHRTY_STATIC_ROOT: packages/web/dist
       FEISTEL_KEY: ${FEISTEL_KEY:-change-this-in-production-at-least-16}
-      PORT: "3000"
+      PORT: '3000'
       NODE_ENV: production
       LOG_LEVEL: info
     depends_on:
@@ -19,7 +19,7 @@ services:
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_USER: shrty
       POSTGRES_PASSWORD: shrty
@@ -27,7 +27,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shrty"]
+      test: ['CMD-SHELL', 'pg_isready -U shrty']
       interval: 5s
       timeout: 5s
       retries: 5

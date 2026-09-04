@@ -6,7 +6,10 @@ export function createAuthMiddleware(config: AppConfig) {
   return async (c: Context, next: Next) => {
     const authHeader = c.req.header('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return c.json({ error: 'Unauthorized', message: 'Missing or invalid Authorization header' }, 401)
+      return c.json(
+        { error: 'Unauthorized', message: 'Missing or invalid Authorization header' },
+        401,
+      )
     }
 
     const token = authHeader.slice(7)
@@ -19,10 +22,7 @@ export function createAuthMiddleware(config: AppConfig) {
 }
 
 export function createRateLimitMiddleware(config: AppConfig) {
-  const limiter = new SlidingWindowRateLimiter(
-    config.rateLimit.createPerMinute,
-    60_000,
-  )
+  const limiter = new SlidingWindowRateLimiter(config.rateLimit.createPerMinute, 60_000)
 
   return async (c: Context, next: Next) => {
     const key = c.req.header('authorization') ?? 'anonymous'

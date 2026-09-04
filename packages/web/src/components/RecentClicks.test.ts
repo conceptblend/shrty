@@ -11,14 +11,24 @@ describe('formatRelativeTime', () => {
 
   it('formats exactly 1 minute and other minute counts', () => {
     expect(formatRelativeTime(new Date(now.getTime() - 60_000).toISOString(), now)).toBe('1m ago')
-    expect(formatRelativeTime(new Date(now.getTime() - 5 * 60_000).toISOString(), now)).toBe('5m ago')
-    expect(formatRelativeTime(new Date(now.getTime() - 59 * 60_000).toISOString(), now)).toBe('59m ago')
+    expect(formatRelativeTime(new Date(now.getTime() - 5 * 60_000).toISOString(), now)).toBe(
+      '5m ago',
+    )
+    expect(formatRelativeTime(new Date(now.getTime() - 59 * 60_000).toISOString(), now)).toBe(
+      '59m ago',
+    )
   })
 
   it('formats exactly 1 hour and other hour counts under 24h', () => {
-    expect(formatRelativeTime(new Date(now.getTime() - 60 * 60_000).toISOString(), now)).toBe('1h ago')
-    expect(formatRelativeTime(new Date(now.getTime() - 2 * 60 * 60_000).toISOString(), now)).toBe('2h ago')
-    expect(formatRelativeTime(new Date(now.getTime() - 23 * 60 * 60_000).toISOString(), now)).toBe('23h ago')
+    expect(formatRelativeTime(new Date(now.getTime() - 60 * 60_000).toISOString(), now)).toBe(
+      '1h ago',
+    )
+    expect(formatRelativeTime(new Date(now.getTime() - 2 * 60 * 60_000).toISOString(), now)).toBe(
+      '2h ago',
+    )
+    expect(formatRelativeTime(new Date(now.getTime() - 23 * 60 * 60_000).toISOString(), now)).toBe(
+      '23h ago',
+    )
   })
 
   it('falls back to a short absolute date for entries 24h or older', () => {

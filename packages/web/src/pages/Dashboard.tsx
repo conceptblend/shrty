@@ -49,7 +49,10 @@ function FreshnessControl({
         title="Refresh"
         className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
-        <span aria-hidden="true" className={isRefreshing ? 'inline-block animate-spin' : 'inline-block'}>
+        <span
+          aria-hidden="true"
+          className={isRefreshing ? 'inline-block animate-spin' : 'inline-block'}
+        >
           ⟳
         </span>
       </button>
@@ -102,7 +105,12 @@ export default function Dashboard() {
             </p>
             <p className="truncate">
               <span className="font-medium">Destination:</span>{' '}
-              <a href={data.destinationUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
+              <a
+                href={data.destinationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-500 hover:underline"
+              >
                 {data.destinationUrl}
               </a>
             </p>

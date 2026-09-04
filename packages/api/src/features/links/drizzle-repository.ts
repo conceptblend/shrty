@@ -8,17 +8,18 @@ export class DrizzleLinkRepository implements LinkRepository {
   constructor(private db: DrizzleDB) {}
 
   async insert(data: { destinationUrl: string; expiresAt?: Date }) {
-    const [row] = await this.db.insert(links).values({
-      destinationUrl: data.destinationUrl,
-      expiresAt: data.expiresAt ?? null,
-    }).returning()
+    const [row] = await this.db
+      .insert(links)
+      .values({
+        destinationUrl: data.destinationUrl,
+        expiresAt: data.expiresAt ?? null,
+      })
+      .returning()
     return row
   }
 
   async setHash(id: number, hash: string): Promise<void> {
-    await this.db.update(links)
-      .set({ hash })
-      .where(eq(links.id, id))
+    await this.db.update(links).set({ hash }).where(eq(links.id, id))
   }
 
   async findByHash(hash: string): Promise<Link | null> {
@@ -44,7 +45,8 @@ export class DrizzleLinkRepository implements LinkRepository {
       return this.findByHash(hash)
     }
 
-    const [row] = await this.db.update(links)
+    const [row] = await this.db
+      .update(links)
       .set(updateData)
       .where(eq(links.hash, hash))
       .returning()
@@ -53,9 +55,7 @@ export class DrizzleLinkRepository implements LinkRepository {
   }
 
   async softDelete(hash: string): Promise<void> {
-    await this.db.update(links)
-      .set({ isDeleted: true })
-      .where(eq(links.hash, hash))
+    await this.db.update(links).set({ isDeleted: true }).where(eq(links.hash, hash))
   }
 
   async list(options: LinkListParams): Promise<PaginatedLinks> {
@@ -69,16 +69,17 @@ export class DrizzleLinkRepository implements LinkRepository {
     })
 
     const hasMore = rows.length > limit
-    const items = rows.slice(0, limit).map(r => this.toLink(r))
+    const items = rows.slice(0, limit).map((r) => this.toLink(r))
 
     return {
       links: items,
-      nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
+      nextCursor: hasMore ? (items[items.length - 1]?.id ?? null) : null,
     }
   }
 
   async incrementClickCount(hash: string, count: number): Promise<void> {
-    await this.db.update(links)
+    await this.db
+      .update(links)
       .set({ clickCount: sql`click_count + ${count}` })
       .where(eq(links.hash, hash))
   }

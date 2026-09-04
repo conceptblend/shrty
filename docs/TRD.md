@@ -37,25 +37,23 @@ Each domain concept (links, analytics, redirects) is a self-contained Hono sub-a
 // Each feature exports a Hono sub-app
 // src/features/links/routes.ts
 export const linksRoutes = new Hono()
-    .post('/', auth, shortenHandler)
-    .get('/', auth, listLinksHandler)
-    .get('/:hash', auth, getLinkHandler)
-    .patch('/:hash', auth, updateLinkHandler)
-    .delete('/:hash', auth, deleteLinkHandler)
+  .post('/', auth, shortenHandler)
+  .get('/', auth, listLinksHandler)
+  .get('/:hash', auth, getLinkHandler)
+  .patch('/:hash', auth, updateLinkHandler)
+  .delete('/:hash', auth, deleteLinkHandler)
 
 // src/features/redirects/routes.ts
-export const redirectRoutes = new Hono()
-    .get('/:hash', redirectHandler)
+export const redirectRoutes = new Hono().get('/:hash', redirectHandler)
 
 // src/features/analytics/routes.ts
-export const analyticsRoutes = new Hono()
-    .get('/:hash', auth, analyticsHandler)
+export const analyticsRoutes = new Hono().get('/:hash', auth, analyticsHandler)
 
 // src/index.ts — composition root
 const app = new Hono()
 app.route('/api/v1/links', linksRoutes)
 app.route('/api/v1/analytics', analyticsRoutes)
-app.route('/', redirectRoutes)  // catch-all for :hash redirects
+app.route('/', redirectRoutes) // catch-all for :hash redirects
 ```
 
 **Why**: Adding a new feature (e.g., webhooks in v2) means creating `src/features/webhooks/routes.ts` and mounting it — zero changes to existing modules. Each module owns its routes, its service layer, and its DB schema subset.
@@ -126,7 +124,8 @@ export class DrizzleLinkRepository implements LinkRepository {
 export class SqliteLinkRepository implements LinkRepository { ... }
 ```
 
-**Why**: 
+**Why**:
+
 - v2 adds SQLite as a zero-config alternative — new `SqliteLinkRepository`, same service layer
 - v2 adds multi-tenancy — repository filters by `tenant_id` transparently
 - Tests use `InMemoryLinkRepository` — no database needed
@@ -139,45 +138,49 @@ The analytics pipeline is decoupled via an event system. The redirect handler em
 ```typescript
 // src/lib/events.ts — minimal typed event emitter
 type EventMap = {
-    'click:recorded': ClickEvent
-    'link:created': Link
-    'link:deleted': { hash: string }
+  'click:recorded': ClickEvent
+  'link:created': Link
+  'link:deleted': { hash: string }
 }
 
 export class EventBus {
-    private listeners = new Map<string, Set<Function>>()
+  private listeners = new Map<string, Set<Function>>()
 
-    on<K extends keyof EventMap>(event: K, handler: (data: EventMap[K]) => void | Promise<void>): void {
-        if (!this.listeners.has(event)) this.listeners.set(event, new Set())
-        this.listeners.get(event)!.add(handler)
-    }
+  on<K extends keyof EventMap>(
+    event: K,
+    handler: (data: EventMap[K]) => void | Promise<void>,
+  ): void {
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set())
+    this.listeners.get(event)!.add(handler)
+  }
 
-    async emit<K extends keyof EventMap>(event: K, data: EventMap[K]): Promise<void> {
-        const handlers = this.listeners.get(event) ?? new Set()
-        await Promise.allSettled([...handlers].map(h => h(data)))
-    }
+  async emit<K extends keyof EventMap>(event: K, data: EventMap[K]): Promise<void> {
+    const handlers = this.listeners.get(event) ?? new Set()
+    await Promise.allSettled([...handlers].map((h) => h(data)))
+  }
 }
 
 // src/features/redirects/redirect-handler.ts
 // Emits event, doesn't know who's listening
 const redirectHandler = async (c: Context) => {
-    // ... lookup, validate, redirect ...
-    await eventBus.emit('click:recorded', clickEvent)
-    return c.redirect(destination, 302)
+  // ... lookup, validate, redirect ...
+  await eventBus.emit('click:recorded', clickEvent)
+  return c.redirect(destination, 302)
 }
 
 // src/features/analytics/recorder-subscriber.ts — subscribes to events
 eventBus.on('click:recorded', async (event) => {
-    await analyticsRecorder.record(event)
+  await analyticsRecorder.record(event)
 })
 
 // v2: src/features/webhooks/click-subscriber.ts — webhook on click
 eventBus.on('click:recorded', async (event) => {
-    await webhookDispatcher.dispatch(event)
+  await webhookDispatcher.dispatch(event)
 })
 ```
 
 **Why**:
+
 - Redirect handler never changes when new consumers are added
 - v2 webhooks: one `eventBus.on()` call, zero changes to redirect flow
 - v2 real-time dashboard: WebSocket subscriber on `click:recorded`
@@ -192,28 +195,33 @@ Configuration is validated once at boot, not scattered across `process.env` read
 import { z } from 'zod'
 
 const configSchema = z.object({
-    port: z.number().default(3000),
-    databaseUrl: z.string().url(),
-    domain: z.string().default('localhost:3000'),
-    feistelKey: z.string().min(16),
-    apiKey: z.string().min(16),
-    analytics: z.object({
-        batchSize: z.number().default(100),
-        flushIntervalMs: z.number().default(5000),
-    }).default({}),
-    rateLimit: z.object({
-        createPerMinute: z.number().default(60),
-    }).default({}),
+  port: z.number().default(3000),
+  databaseUrl: z.string().url(),
+  domain: z.string().default('localhost:3000'),
+  feistelKey: z.string().min(16),
+  apiKey: z.string().min(16),
+  analytics: z
+    .object({
+      batchSize: z.number().default(100),
+      flushIntervalMs: z.number().default(5000),
+    })
+    .default({}),
+  rateLimit: z
+    .object({
+      createPerMinute: z.number().default(60),
+    })
+    .default({}),
 })
 
 export type AppConfig = z.infer<typeof configSchema>
 
 export function loadConfig(): AppConfig {
-    return configSchema.parse(process.env)
+  return configSchema.parse(process.env)
 }
 ```
 
 **Why**:
+
 - Fail fast on misconfiguration — no runtime surprises
 - Type-safe — `config.analytics.batchSize` is a `number`, always
 - Documented defaults — every env var has a sensible default
@@ -226,39 +234,45 @@ The entire application is created via a factory function that accepts optional d
 ```typescript
 // src/app.ts
 export type AppOverrides = Partial<{
-    linkRepository: LinkRepository
-    analyticsRecorder: AnalyticsRecorder
-    eventBus: EventBus
-    config: AppConfig
+  linkRepository: LinkRepository
+  analyticsRecorder: AnalyticsRecorder
+  eventBus: EventBus
+  config: AppConfig
 }>
 
 export function createApp(overrides: AppOverrides = {}) {
-    const config = overrides.config ?? loadConfig()
-    const eventBus = overrides.eventBus ?? new EventBus()
+  const config = overrides.config ?? loadConfig()
+  const eventBus = overrides.eventBus ?? new EventBus()
 
-    // Wire up repositories
-    const linkRepo = overrides.linkRepository ?? new DrizzleLinkRepository(db)
+  // Wire up repositories
+  const linkRepo = overrides.linkRepository ?? new DrizzleLinkRepository(db)
 
-    // Wire up services
-    const linkService = new LinkService(linkRepo, hashGenerator, config)
-    const analyticsRecorder = overrides.analyticsRecorder ?? new AnalyticsRecorder(db, config)
-    const analyticsQuery = new AnalyticsQuery(db)
+  // Wire up services
+  const linkService = new LinkService(linkRepo, hashGenerator, config)
+  const analyticsRecorder = overrides.analyticsRecorder ?? new AnalyticsRecorder(db, config)
+  const analyticsQuery = new AnalyticsQuery(db)
 
-    // Subscribe analytics to events
-    eventBus.on('click:recorded', (e) => analyticsRecorder.record(e))
+  // Subscribe analytics to events
+  eventBus.on('click:recorded', (e) => analyticsRecorder.record(e))
 
-    // Build services container
-    const services: AppServices = { linkService, analyticsRecorder, analyticsQuery, hashGenerator, config }
+  // Build services container
+  const services: AppServices = {
+    linkService,
+    analyticsRecorder,
+    analyticsQuery,
+    hashGenerator,
+    config,
+  }
 
-    // Compose Hono app
-    const app = new Hono()
-    app.use('*', createServicesMiddleware(services))
-    app.route('/api/links', linksRoutes)
-    app.route('/api/analytics', analyticsRoutes)
-    app.route('/', redirectRoutes)
-    app.use('/*', serveStatic({ root: './frontend/dist' }))
+  // Compose Hono app
+  const app = new Hono()
+  app.use('*', createServicesMiddleware(services))
+  app.route('/api/links', linksRoutes)
+  app.route('/api/analytics', analyticsRoutes)
+  app.route('/', redirectRoutes)
+  app.use('/*', serveStatic({ root: './frontend/dist' }))
 
-    return app
+  return app
 }
 
 // src/index.ts — production entry point
@@ -270,14 +284,14 @@ serve({ fetch: app.fetch, port: loadConfig().port })
 
 ### Summary of Patterns
 
-| Pattern | Mechanism | Extends By |
-|---------|-----------|------------|
-| Feature Modules | `app.route()` composition | Add new `features/*/routes.ts`, mount in `app.ts` |
-| Service Container | Hono `c.set()`/`c.var` | Add new keys to `AppServices` type |
-| Repository | Interface + Drizzle impl | New impl class (SQLite, in-memory) |
-| Event Bus | Typed emitter with `on`/`emit` | New `eventBus.on()` subscriber |
-| Config Schema | Zod validation at boot | New fields with defaults |
-| App Factory | `createApp(overrides)` | New override keys for tests |
+| Pattern           | Mechanism                      | Extends By                                        |
+| ----------------- | ------------------------------ | ------------------------------------------------- |
+| Feature Modules   | `app.route()` composition      | Add new `features/*/routes.ts`, mount in `app.ts` |
+| Service Container | Hono `c.set()`/`c.var`         | Add new keys to `AppServices` type                |
+| Repository        | Interface + Drizzle impl       | New impl class (SQLite, in-memory)                |
+| Event Bus         | Typed emitter with `on`/`emit` | New `eventBus.on()` subscriber                    |
+| Config Schema     | Zod validation at boot         | New fields with defaults                          |
+| App Factory       | `createApp(overrides)`         | New override keys for tests                       |
 
 ### Updated Project Structure (with patterns applied)
 
@@ -361,16 +375,16 @@ shrty/
 
 ## 3. Technology Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **Runtime** | Node.js 20 LTS | Stable, native crypto, excellent ecosystem |
-| **API Framework** | Hono | Fastest Node.js framework, TypeScript-first, edge-ready if needed |
-| **ORM** | Drizzle ORM | ~7.4kb, SQL-fluent, fast cold starts, no codegen |
-| **Database** | PostgreSQL 16 | Single DB for everything — links + analytics. Sufficient at moderate scale |
-| **Frontend** | React 18 + Vite | SPA, static build served by Hono |
-| **Styling** | Tailwind CSS 3 | Utility-first, `dark:` prefix for dark mode, minimal custom CSS |
-| **Charts** | Recharts | SVG-based, React-native, composable, ~200KB gzipped |
-| **Docker** | Multi-stage build | Node builder → production image with just runtime + static files |
+| Decision          | Choice            | Rationale                                                                  |
+| ----------------- | ----------------- | -------------------------------------------------------------------------- |
+| **Runtime**       | Node.js 20 LTS    | Stable, native crypto, excellent ecosystem                                 |
+| **API Framework** | Hono              | Fastest Node.js framework, TypeScript-first, edge-ready if needed          |
+| **ORM**           | Drizzle ORM       | ~7.4kb, SQL-fluent, fast cold starts, no codegen                           |
+| **Database**      | PostgreSQL 16     | Single DB for everything — links + analytics. Sufficient at moderate scale |
+| **Frontend**      | React 18 + Vite   | SPA, static build served by Hono                                           |
+| **Styling**       | Tailwind CSS 3    | Utility-first, `dark:` prefix for dark mode, minimal custom CSS            |
+| **Charts**        | Recharts          | SVG-based, React-native, composable, ~200KB gzipped                        |
+| **Docker**        | Multi-stage build | Node builder → production image with just runtime + static files           |
 
 ### Why Not Redis?
 
@@ -444,6 +458,7 @@ Drizzle supports partitioned tables. We'll create new partitions monthly via a m
 Auto-increment ID → Feistel cipher (obfuscation) → Base62 encoding → 7-char hash.
 
 The Feistel cipher is a symmetric structure that turns a sequential counter into a non-sequential, non-predictable output using a secret key. This means:
+
 - **Zero collisions** — each ID maps to exactly one hash
 - **Non-enumerable** — can't guess hash N+1 from hash N
 - **No retries** — deterministic mapping, no uniqueness check needed
@@ -453,54 +468,51 @@ The Feistel cipher is a symmetric structure that turns a sequential counter into
 ```typescript
 // src/lib/hash.ts
 
-const BASE62_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const BASE = BigInt(62);
-const HASH_LENGTH = 7;
+const BASE62_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const BASE = BigInt(62)
+const HASH_LENGTH = 7
 
 // Feistel cipher parameters (stored in env config)
-const FEISTEL_ROUNDS = 4;
-const FEISTEL_KEY = process.env.FEISTEL_KEY || 'default-dev-key-change-me';
+const FEISTEL_ROUNDS = 4
+const FEISTEL_KEY = process.env.FEISTEL_KEY || 'default-dev-key-change-me'
 
 function feistelEncrypt(id: number, rounds: number): number {
-    const n = BigInt(id);
-    const mask = (1n << 32n) - 1n;
-    let left = (n >> 32n) & mask;
-    let right = n & mask;
+  const n = BigInt(id)
+  const mask = (1n << 32n) - 1n
+  let left = (n >> 32n) & mask
+  let right = n & mask
 
-    for (let i = 0; i < rounds; i++) {
-        const roundKey = deriveRoundKey(i);
-        const newRight = left ^ roundKey;
-        left = right;
-        right = newRight;
-    }
+  for (let i = 0; i < rounds; i++) {
+    const roundKey = deriveRoundKey(i)
+    const newRight = left ^ roundKey
+    left = right
+    right = newRight
+  }
 
-    return Number((left << 32n) | right);
+  return Number((left << 32n) | right)
 }
 
 function deriveRoundKey(round: number): bigint {
-    // Simple key derivation — XOR round number with hash of secret key
-    const keyHash = crypto.createHash('sha256')
-        .update(FEISTEL_KEY)
-        .update(round.toString())
-        .digest();
-    return keyHash.readBigUInt64BE(0) & ((1n << 32n) - 1n);
+  // Simple key derivation — XOR round number with hash of secret key
+  const keyHash = crypto.createHash('sha256').update(FEISTEL_KEY).update(round.toString()).digest()
+  return keyHash.readBigUInt64BE(0) & ((1n << 32n) - 1n)
 }
 
 function encodeBase62(num: bigint): string {
-    if (num === 0n) return BASE62_ALPHABET[0];
-    let n = num;
-    let result = '';
-    while (n > 0n) {
-        result = BASE62_ALPHABET[Number(n % BASE)] + result;
-        n = n / BASE;
-    }
-    return result;
+  if (num === 0n) return BASE62_ALPHABET[0]
+  let n = num
+  let result = ''
+  while (n > 0n) {
+    result = BASE62_ALPHABET[Number(n % BASE)] + result
+    n = n / BASE
+  }
+  return result
 }
 
 export function generateHash(id: number): string {
-    const encrypted = feistelEncrypt(id, FEISTEL_ROUNDS);
-    const encoded = encodeBase62(BigInt(encrypted));
-    return encoded.padStart(HASH_LENGTH, '0');
+  const encrypted = feistelEncrypt(id, FEISTEL_ROUNDS)
+  const encoded = encodeBase62(BigInt(encrypted))
+  return encoded.padStart(HASH_LENGTH, '0')
 }
 ```
 
@@ -518,15 +530,17 @@ export function generateHash(id: number): string {
 ### POST /api/v1/shorten
 
 **Request:**
+
 ```json
 {
   "url": "https://example.com/very/long/path?with=params",
-  "customSlug": "my-link",       // optional
-  "expiresAt": "2026-12-31T23:59:59Z"  // optional
+  "customSlug": "my-link", // optional
+  "expiresAt": "2026-12-31T23:59:59Z" // optional
 }
 ```
 
 **Response (201):**
+
 ```json
 {
   "hash": "Kx7mN2p",
@@ -538,6 +552,7 @@ export function generateHash(id: number): string {
 ```
 
 **Error (422):**
+
 ```json
 {
   "error": "Invalid URL",
@@ -546,6 +561,7 @@ export function generateHash(id: number): string {
 ```
 
 **Error (409):**
+
 ```json
 {
   "error": "Slug taken",
@@ -556,6 +572,7 @@ export function generateHash(id: number): string {
 ### GET /:hash → 302 Redirect
 
 **Response:**
+
 ```
 HTTP/1.1 302 Found
 Location: https://example.com/very/long/path?with=params
@@ -567,6 +584,7 @@ Cache-Control: no-store
 ### GET /api/v1/links/:hash/analytics
 
 **Response (200):**
+
 ```json
 {
   "hash": "Kx7mN2p",
@@ -657,44 +675,48 @@ Click events are buffered in an in-memory array. Every 100 events or every 5 sec
 // src/features/analytics/recorder.ts
 
 export class AnalyticsRecorder {
-    private buffer: ClickEvent[] = [];
-    private flushTimer: NodeJS.Timeout | null = null;
+  private buffer: ClickEvent[] = []
+  private flushTimer: NodeJS.Timeout | null = null
 
-    constructor(private db: DrizzleDB, private config: AppConfig) {}
+  constructor(
+    private db: DrizzleDB,
+    private config: AppConfig,
+  ) {}
 
-    async record(event: ClickEvent): Promise<void> {
-        this.buffer.push(event);
+  async record(event: ClickEvent): Promise<void> {
+    this.buffer.push(event)
 
-        if (this.buffer.length >= this.config.analytics.batchSize) {
-            await this.flush();
-        } else if (!this.flushTimer) {
-            this.flushTimer = setTimeout(() => this.flush(), this.config.analytics.flushIntervalMs);
-        }
+    if (this.buffer.length >= this.config.analytics.batchSize) {
+      await this.flush()
+    } else if (!this.flushTimer) {
+      this.flushTimer = setTimeout(() => this.flush(), this.config.analytics.flushIntervalMs)
+    }
+  }
+
+  async flush(): Promise<void> {
+    if (this.buffer.length === 0) return
+
+    const events = this.buffer.splice(0)
+    if (this.flushTimer) {
+      clearTimeout(this.flushTimer)
+      this.flushTimer = null
     }
 
-    async flush(): Promise<void> {
-        if (this.buffer.length === 0) return;
+    await this.db.insert(clicksTable).values(events)
 
-        const events = this.buffer.splice(0);
-        if (this.flushTimer) {
-            clearTimeout(this.flushTimer);
-            this.flushTimer = null;
-        }
-
-        await this.db.insert(clicksTable).values(events);
-
-        // Batch increment click counts
-        const counts = new Map<string, number>();
-        for (const e of events) {
-            counts.set(e.hash, (counts.get(e.hash) || 0) + 1);
-        }
-
-        for (const [hash, count] of counts) {
-            await this.db.update(linksTable)
-                .set({ clickCount: sql`click_count + ${count}` })
-                .where(eq(linksTable.hash, hash));
-        }
+    // Batch increment click counts
+    const counts = new Map<string, number>()
+    for (const e of events) {
+      counts.set(e.hash, (counts.get(e.hash) || 0) + 1)
     }
+
+    for (const [hash, count] of counts) {
+      await this.db
+        .update(linksTable)
+        .set({ clickCount: sql`click_count + ${count}` })
+        .where(eq(linksTable.hash, hash))
+    }
+  }
 }
 ```
 
@@ -704,7 +726,7 @@ export class AnalyticsRecorder {
 // src/features/analytics/subscriber.ts
 
 export function subscribeAnalyticsEvents(eventBus: EventBus, recorder: AnalyticsRecorder): void {
-    eventBus.on('click:recorded', (event) => recorder.record(event));
+  eventBus.on('click:recorded', (event) => recorder.record(event))
 }
 ```
 
@@ -749,44 +771,44 @@ ORDER BY clicks DESC;
 // src/features/redirects/handler.ts
 
 export const redirectHandler = async (c: Context) => {
-    const hash = c.req.param('hash');
-    const linkService = c.var.linkService;
-    const eventBus = c.var.eventBus;
+  const hash = c.req.param('hash')
+  const linkService = c.var.linkService
+  const eventBus = c.var.eventBus
 
-    // Skip API routes and static files
-    if (hash.startsWith('api') || hash.startsWith('a') || hash.includes('.')) {
-        return c.notFound();
-    }
+  // Skip API routes and static files
+  if (hash.startsWith('api') || hash.startsWith('a') || hash.includes('.')) {
+    return c.notFound()
+  }
 
-    // Look up the link (via repository abstraction)
-    const link = await linkService.findByHash(hash);
+  // Look up the link (via repository abstraction)
+  const link = await linkService.findByHash(hash)
 
-    if (!link) {
-        return c.html(NOT_FOUND_HTML, 404);
-    }
+  if (!link) {
+    return c.html(NOT_FOUND_HTML, 404)
+  }
 
-    // Check expiration
-    if (link.expiresAt && link.expiresAt < new Date()) {
-        return c.html(EXPIRED_HTML, 410);
-    }
+  // Check expiration
+  if (link.expiresAt && link.expiresAt < new Date()) {
+    return c.html(EXPIRED_HTML, 410)
+  }
 
-    // Build click event (enriched with request metadata)
-    const clickEvent: ClickEvent = {
-        hash: link.hash,
-        ipHash: sha256(c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'),
-        referrer: c.req.header('referer') || null,
-        userAgent: c.req.header('user-agent') || null,
-        ...parseUserAgent(c.req.header('user-agent') || ''),
-        country: geoLookup(c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'),
-    };
+  // Build click event (enriched with request metadata)
+  const clickEvent: ClickEvent = {
+    hash: link.hash,
+    ipHash: sha256(c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'),
+    referrer: c.req.header('referer') || null,
+    userAgent: c.req.header('user-agent') || null,
+    ...parseUserAgent(c.req.header('user-agent') || ''),
+    country: geoLookup(c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'),
+  }
 
-    // Emit event — don't know or care who's listening
-    // AnalyticsRecorder, future webhooks, real-time dashboard all subscribe independently
-    eventBus.emit('click:recorded', clickEvent);
+  // Emit event — don't know or care who's listening
+  // AnalyticsRecorder, future webhooks, real-time dashboard all subscribe independently
+  eventBus.emit('click:recorded', clickEvent)
 
-    // 302 redirect — never cached, never blocked by analytics
-    return c.redirect(link.destinationUrl, 302);
-};
+  // 302 redirect — never cached, never blocked by analytics
+  return c.redirect(link.destinationUrl, 302)
+}
 ```
 
 ### 302 vs 301 Decision
@@ -855,27 +877,27 @@ export const redirectHandler = async (c: Context) => {
 
 ```typescript
 // frontend/tailwind.config.ts
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 const config: Config = {
-    darkMode: 'class',
-    content: ['./src/**/*.{ts,tsx}'],
-    theme: {
-        extend: {
-            colors: {
-                brand: {
-                    50: '#f0f9ff',
-                    500: '#3b82f6',
-                    600: '#2563eb',
-                    900: '#1e3a5f',
-                },
-            },
+  darkMode: 'class',
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#f0f9ff',
+          500: '#3b82f6',
+          600: '#2563eb',
+          900: '#1e3a5f',
         },
+      },
     },
-    plugins: [],
-};
+  },
+  plugins: [],
+}
 
-export default config;
+export default config
 ```
 
 ### useAnalytics Hook
@@ -884,37 +906,37 @@ export default config;
 // frontend/src/hooks/useAnalytics.ts
 
 export function useAnalytics(hash: string, pollInterval = 30000) {
-    const [data, setData] = useState<AnalyticsData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        let active = true;
+  useEffect(() => {
+    let active = true
 
-        async function fetchAnalytics() {
-            try {
-                const res = await fetch(`/api/links/${hash}/analytics`);
-                if (!res.ok) throw new Error('Failed to fetch analytics');
-                const json = await res.json();
-                if (active) {
-                    setData(json);
-                    setLoading(false);
-                }
-            } catch (err) {
-                if (active) setError(err.message);
-            }
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch(`/api/links/${hash}/analytics`)
+        if (!res.ok) throw new Error('Failed to fetch analytics')
+        const json = await res.json()
+        if (active) {
+          setData(json)
+          setLoading(false)
         }
+      } catch (err) {
+        if (active) setError(err.message)
+      }
+    }
 
-        fetchAnalytics();
-        const interval = setInterval(fetchAnalytics, pollInterval);
+    fetchAnalytics()
+    const interval = setInterval(fetchAnalytics, pollInterval)
 
-        return () => {
-            active = false;
-            clearInterval(interval);
-        };
-    }, [hash, pollInterval]);
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [hash, pollInterval])
 
-    return { data, loading, error };
+  return { data, loading, error }
 }
 ```
 
@@ -924,10 +946,10 @@ Vite builds to `frontend/dist/`. The Hono server serves `frontend/dist/` as stat
 
 ```typescript
 // src/index.ts
-import { serveStatic } from 'hono/bun'; // or hono/nodejs
+import { serveStatic } from 'hono/bun' // or hono/nodejs
 
-app.use('/assets/*', serveStatic({ root: './frontend/dist' }));
-app.get('/a/:hash', serveStatic({ path: './frontend/dist/index.html' }));
+app.use('/assets/*', serveStatic({ root: './frontend/dist' }))
+app.get('/a/:hash', serveStatic({ path: './frontend/dist/index.html' }))
 ```
 
 The SPA uses client-side routing to match `/a/:hash` and loads the Dashboard component.
@@ -940,7 +962,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - DATABASE_URL=postgresql://shrty:shrty@postgres:5432/shrty
       - SHRTY_API_KEY=${SHRTY_API_KEY}
@@ -959,7 +981,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shrty"]
+      test: ['CMD-SHELL', 'pg_isready -U shrty']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -1004,12 +1026,12 @@ NODE_ENV=production
 
 ## 12. Testing Strategy
 
-| Test Type | Tool | What to Test |
-|-----------|------|-------------|
-| Unit | Vitest | Hash generation, URL validation, UA parsing, Feistel cipher, EventBus |
-| Integration | Vitest + testcontainers | DB operations via DrizzleLinkRepository, analytics batch flush |
-| Component | Vitest | React dashboard components with mock data |
-| E2E | Playwright | Full dashboard flow: create link → visit → see analytics |
+| Test Type   | Tool                    | What to Test                                                          |
+| ----------- | ----------------------- | --------------------------------------------------------------------- |
+| Unit        | Vitest                  | Hash generation, URL validation, UA parsing, Feistel cipher, EventBus |
+| Integration | Vitest + testcontainers | DB operations via DrizzleLinkRepository, analytics batch flush        |
+| Component   | Vitest                  | React dashboard components with mock data                             |
+| E2E         | Playwright              | Full dashboard flow: create link → visit → see analytics              |
 
 ### Testing Patterns
 
@@ -1021,36 +1043,36 @@ import { createApp } from '../../src/app'
 import { InMemoryLinkRepository } from '../repositories/in-memory-link-repository'
 
 test('POST /api/links creates a short link', async () => {
-    const linkRepo = new InMemoryLinkRepository()
-    const app = createApp({ linkRepository: linkRepo })
+  const linkRepo = new InMemoryLinkRepository()
+  const app = createApp({ linkRepository: linkRepo })
 
-const res = await app.request('/api/v1/links', {
+  const res = await app.request('/api/v1/links', {
     method: 'POST',
     body: JSON.stringify({ url: 'https://example.com' }),
-    headers: { 'Authorization': 'Bearer test-key' },
-})
+    headers: { Authorization: 'Bearer test-key' },
+  })
 
-    expect(res.status).toBe(201)
-    const body = await res.json()
-    expect(body.hash).toHaveLength(7)
-    expect(linkRepo.findByHash(body.hash)).resolves.toExist()
+  expect(res.status).toBe(201)
+  const body = await res.json()
+  expect(body.hash).toHaveLength(7)
+  expect(linkRepo.findByHash(body.hash)).resolves.toExist()
 })
 
 test('GET /:hash redirects and emits analytics event', async () => {
-    const eventBus = new EventBus()
-    const captured: ClickEvent[] = []
-    eventBus.on('click:recorded', (e) => captured.push(e))
+  const eventBus = new EventBus()
+  const captured: ClickEvent[] = []
+  eventBus.on('click:recorded', (e) => captured.push(e))
 
-    const linkRepo = new InMemoryLinkRepository()
-    await linkRepo.create({ hash: 'abc1234', destinationUrl: 'https://example.com' })
+  const linkRepo = new InMemoryLinkRepository()
+  await linkRepo.create({ hash: 'abc1234', destinationUrl: 'https://example.com' })
 
-    const app = createApp({ linkRepository: linkRepo, eventBus })
-    const res = await app.request('/abc1234')
+  const app = createApp({ linkRepository: linkRepo, eventBus })
+  const res = await app.request('/abc1234')
 
-    expect(res.status).toBe(302)
-    expect(res.headers.get('location')).toBe('https://example.com')
-    expect(captured).toHaveLength(1)
-    expect(captured[0].hash).toBe('abc1234')
+  expect(res.status).toBe(302)
+  expect(res.headers.get('location')).toBe('https://example.com')
+  expect(captured).toHaveLength(1)
+  expect(captured[0].hash).toBe('abc1234')
 })
 ```
 
@@ -1067,13 +1089,13 @@ test('GET /:hash redirects and emits analytics event', async () => {
 
 ## 13. Performance Targets
 
-| Metric | Target | How |
-|--------|--------|-----|
-| Redirect latency (p95) | < 10ms | Indexed PostgreSQL lookup, no blocking on analytics |
-| Shorten API (p95) | < 200ms | Single INSERT + UPDATE |
-| Dashboard load (p95) | < 1s | Static SPA + fast aggregation queries |
-| Clicks buffered flush | < 5s | Batch inserts every 5s or 100 events |
-| Concurrent redirects | 10K+ req/s | Hono + PostgreSQL (single node) |
+| Metric                 | Target     | How                                                 |
+| ---------------------- | ---------- | --------------------------------------------------- |
+| Redirect latency (p95) | < 10ms     | Indexed PostgreSQL lookup, no blocking on analytics |
+| Shorten API (p95)      | < 200ms    | Single INSERT + UPDATE                              |
+| Dashboard load (p95)   | < 1s       | Static SPA + fast aggregation queries               |
+| Clicks buffered flush  | < 5s       | Batch inserts every 5s or 100 events                |
+| Concurrent redirects   | 10K+ req/s | Hono + PostgreSQL (single node)                     |
 
 ## 14. Security
 
@@ -1087,12 +1109,14 @@ test('GET /:hash redirects and emits analytics event', async () => {
 ## 15. Migration Path
 
 ### v1 (this document)
+
 - Single-user, API-key auth
 - PostgreSQL only
 - React + Tailwind + Recharts dashboard
 - Docker Compose deployment
 
 ### v2 (future considerations)
+
 - User accounts + multi-tenancy
 - Custom/branded domains
 - Redis cache layer (if scale demands)
@@ -1102,6 +1126,7 @@ test('GET /:hash redirects and emits analytics event', async () => {
 - 301/302 toggle per link
 
 ### v3 (if needed)
+
 - ClickHouse for analytics (if PostgreSQL aggregation queries become slow)
 - CDN edge redirects (Cloudflare Workers / Hono edge)
 - Conversion tracking
