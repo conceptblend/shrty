@@ -12,8 +12,14 @@ export function DashboardSkeleton() {
           <Block className="h-4 w-48" />
           <Block className="h-4 w-40" />
           <Block className="h-4 w-56" />
+          <Block className="h-4 w-56" />
         </div>
         <Block className="h-8 w-24" />
+      </div>
+
+      {/* Freshness */}
+      <div className="mb-4">
+        <Block className="h-4 w-32" />
       </div>
 
       {/* Summary cards */}
