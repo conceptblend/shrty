@@ -7,6 +7,7 @@ import { DeviceChart } from '../components/DeviceChart'
 import { BrowserChart } from '../components/BrowserChart'
 import { CountryTable } from '../components/CountryTable'
 import { RecentClicks } from '../components/RecentClicks'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 export default function Dashboard() {
   const { hash } = useParams<{ hash: string }>()
@@ -34,24 +35,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Shrty — Link Analytics</h1>
-        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 space-y-1">
-          <p>
-            <span className="font-medium">Hash:</span>{' '}
-            <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{hash}</code>
-          </p>
-          <p>
-            <span className="font-medium">Created:</span>{' '}
-            {new Date(data.createdAt).toLocaleDateString()}
-          </p>
-          <p className="truncate">
-            <span className="font-medium">Destination:</span>{' '}
-            <a href={data.destinationUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
-              {data.destinationUrl}
-            </a>
-          </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Shrty — Link Analytics</h1>
+          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 space-y-1">
+            <p>
+              <span className="font-medium">Hash:</span>{' '}
+              <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{hash}</code>
+            </p>
+            <p>
+              <span className="font-medium">Created:</span>{' '}
+              {new Date(data.createdAt).toLocaleDateString()}
+            </p>
+            <p className="truncate">
+              <span className="font-medium">Destination:</span>{' '}
+              <a href={data.destinationUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
+                {data.destinationUrl}
+              </a>
+            </p>
+          </div>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* Summary cards */}
