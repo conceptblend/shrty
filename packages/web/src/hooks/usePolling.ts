@@ -39,9 +39,10 @@ export function usePolling<T>(
       if (!activeRef.current) return
       setError(err.message ?? 'Failed to fetch')
     } finally {
-      if (!activeRef.current) return
-      setLoading(false)
-      setIsRefreshing(false)
+      if (activeRef.current) {
+        setLoading(false)
+        setIsRefreshing(false)
+      }
     }
   }, [])
 

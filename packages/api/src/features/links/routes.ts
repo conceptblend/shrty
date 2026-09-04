@@ -1,11 +1,10 @@
 import { Hono } from 'hono'
 import { LinkService, LinkError } from './service.js'
 import type { AppConfig } from '../../config.js'
-import type { LinkRepository } from './repository.js'
 
 export function createLinksRoutes(
   linkService: LinkService,
-  config: AppConfig,
+  _config: AppConfig,
 ) {
   const app = new Hono()
 

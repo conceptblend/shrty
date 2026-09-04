@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { LinkService, LinkError } from './service.js'
 import { InMemoryLinkRepository } from './repository.js'
 import type { AppConfig } from '../../config.js'
