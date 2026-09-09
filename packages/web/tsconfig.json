@@ -3,8 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "@shrty/shared": ["../shared/src"]
+      "@shrty/shared": ["../shared/src"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

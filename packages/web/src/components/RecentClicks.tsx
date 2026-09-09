@@ -1,4 +1,6 @@
 import type { ClickEvent } from '@shrty/shared'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 interface RecentClicksProps {
   data: ClickEvent[]
@@ -38,42 +40,44 @@ export function formatRelativeTime(clickedAt: string, now: Date = new Date()): s
 }
 
 export function RecentClicks({ data }: RecentClicksProps) {
-  if (data.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800">
-        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Recent Clicks</h3>
-        <p className="text-sm text-gray-400">No clicks yet</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800">
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Recent Clicks</h3>
-      <div className="space-y-2 max-h-80 overflow-y-auto">
-        {data.map((click, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between gap-2 text-sm border-b border-gray-100 dark:border-gray-800 pb-2 last:border-0"
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <span className="font-mono text-xs text-gray-400 w-14 shrink-0 whitespace-nowrap">
-                {formatRelativeTime(click.clickedAt)}
-              </span>
-              <span className="truncate text-gray-600 dark:text-gray-300">
-                {click.referrer ?? 'direct'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-gray-500 text-xs shrink-0 whitespace-nowrap max-w-[45%] sm:max-w-none">
-              <span className="truncate">{click.browser ?? 'Unknown'}</span>
-              <span className="text-gray-300 dark:text-gray-700">·</span>
-              <span className="truncate">{click.os ?? 'Unknown'}</span>
-              <span className="text-gray-300 dark:text-gray-700">·</span>
-              <span className="font-mono uppercase">{click.country ?? 'XX'}</span>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">Recent Clicks</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {data.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No clicks yet</p>
+        ) : (
+          <div className="max-h-80 overflow-y-auto overscroll-contain">
+            <Table className="table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">When</TableHead>
+                  <TableHead>Referrer</TableHead>
+                  <TableHead className="w-40 text-right">Browser / OS / Country</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((click, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {formatRelativeTime(click.clickedAt)}
+                    </TableCell>
+                    <TableCell className="truncate text-foreground">
+                      {click.referrer ?? 'direct'}
+                    </TableCell>
+                    <TableCell className="truncate text-right text-xs text-muted-foreground">
+                      {click.browser ?? 'Unknown'} · {click.os ?? 'Unknown'} ·{' '}
+                      <span className="font-mono uppercase">{click.country ?? 'XX'}</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        ))}
-      </div>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useAnalytics } from '../hooks/useAnalytics'
-import { SummaryCards } from '../components/SummaryCards'
-import { ClickChart } from '../components/ClickChart'
-import { ReferrerTable } from '../components/ReferrerTable'
-import { DeviceChart } from '../components/DeviceChart'
-import { BrowserChart } from '../components/BrowserChart'
-import { CountryTable } from '../components/CountryTable'
-import { RecentClicks } from '../components/RecentClicks'
-import { ThemeToggle } from '../components/ThemeToggle'
-import { DashboardSkeleton } from '../components/DashboardSkeleton'
-import { ShortLinkDisplay } from '../components/ShortLinkDisplay'
+import { RefreshCw } from 'lucide-react'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { SummaryCards } from '@/components/SummaryCards'
+import { ClickChart } from '@/components/ClickChart'
+import { ReferrerTable } from '@/components/ReferrerTable'
+import { DeviceChart } from '@/components/DeviceChart'
+import { BrowserChart } from '@/components/BrowserChart'
+import { CountryTable } from '@/components/CountryTable'
+import { RecentClicks } from '@/components/RecentClicks'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { DashboardSkeleton } from '@/components/DashboardSkeleton'
+import { ShortLinkDisplay } from '@/components/ShortLinkDisplay'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 function formatUpdatedAgo(lastUpdated: Date, now: Date): string {
   const diffSeconds = Math.max(0, Math.floor((now.getTime() - lastUpdated.getTime()) / 1000))
@@ -39,23 +42,18 @@ function FreshnessControl({
   }, [])
 
   return (
-    <div className="mb-4 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+    <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
       <span>{lastUpdated ? `Updated ${formatUpdatedAgo(lastUpdated, now)}` : ''}</span>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={onRefresh}
         disabled={isRefreshing}
         aria-label="Refresh analytics"
-        title="Refresh"
-        className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
-        <span
-          aria-hidden="true"
-          className={isRefreshing ? 'inline-block animate-spin' : 'inline-block'}
-        >
-          ⟳
-        </span>
-      </button>
+        <RefreshCw aria-hidden="true" className={isRefreshing ? 'animate-spin' : undefined} />
+      </Button>
     </div>
   )
 }
@@ -70,17 +68,13 @@ export default function Dashboard() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center px-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Error loading analytics</h1>
-          <p className="text-gray-500 mb-4">{error ?? 'Unknown error'}</p>
-          <button
-            type="button"
-            onClick={refetch}
-            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
+          <h1 className="text-2xl font-semibold">Error loading analytics</h1>
+          <p className="mt-2 mb-4 text-muted-foreground">{error ?? 'Unknown error'}</p>
+          <Button type="button" variant="outline" onClick={refetch}>
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -89,27 +83,26 @@ export default function Dashboard() {
   const hasClicks = data.totalClicks > 0
 
   return (
-    <div className="min-h-screen p-6 max-w-6xl mx-auto">
-      {/* Header */}
+    <div className="mx-auto min-h-screen max-w-6xl p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Shrty — Link Analytics</h1>
-          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 space-y-1">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold text-balance">Shrty — Link Analytics</h1>
+          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
             <p>
-              <span className="font-medium">Hash:</span>{' '}
-              <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{hash}</code>
+              <span className="font-medium text-foreground">Hash:</span>{' '}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">{hash}</code>
             </p>
             <p>
-              <span className="font-medium">Created:</span>{' '}
+              <span className="font-medium text-foreground">Created:</span>{' '}
               {new Date(data.createdAt).toLocaleDateString()}
             </p>
-            <p className="truncate">
-              <span className="font-medium">Destination:</span>{' '}
+            <p className="flex min-w-0 truncate">
+              <span className="mr-1 shrink-0 font-medium text-foreground">Destination:</span>
               <a
                 href={data.destinationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brand-500 hover:underline"
+                className="min-w-0 truncate text-primary underline-offset-4 hover:underline"
               >
                 {data.destinationUrl}
               </a>
@@ -120,18 +113,18 @@ export default function Dashboard() {
         <ThemeToggle />
       </div>
 
-      {/* Freshness */}
       <FreshnessControl lastUpdated={lastUpdated} isRefreshing={isRefreshing} onRefresh={refetch} />
 
       {!hasClicks ? (
-        <div className="bg-white dark:bg-gray-900 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-800 text-center">
-          <p className="text-gray-500 dark:text-gray-400">
-            No clicks yet — share your link to start seeing analytics here.
-          </p>
-        </div>
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground">
+              No clicks yet — share your link to start seeing analytics here.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <>
-          {/* Summary cards */}
           <SummaryCards
             totalClicks={data.totalClicks}
             uniqueVisitors={data.uniqueVisitors}
@@ -139,24 +132,20 @@ export default function Dashboard() {
             topReferrer={data.topReferrers[0]?.referrer ?? null}
           />
 
-          {/* Click chart */}
           <div className="mt-6">
             <ClickChart data={data.clicksByDay} />
           </div>
 
-          {/* Referrers + Devices */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <ReferrerTable data={data.topReferrers} />
             <DeviceChart data={data.devices} />
           </div>
 
-          {/* Browsers + Countries */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <BrowserChart data={data.browsers} />
             <CountryTable data={data.countries} />
           </div>
 
-          {/* Recent clicks */}
           <div className="mt-6">
             <RecentClicks data={data.recentClicks} />
           </div>
