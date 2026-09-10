@@ -1,8 +1,137 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
 
-body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --background: oklch(100% 0 0);
+  --foreground: oklch(14.5% 0.025 264);
+
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(14.5% 0.025 264);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(14.5% 0.025 264);
+
+  --primary: oklch(54.6% 0.245 262.881);
+  --primary-foreground: oklch(100% 0 0);
+
+  --secondary: oklch(96% 0.01 264);
+  --secondary-foreground: oklch(14.5% 0.025 264);
+
+  --muted: oklch(96% 0.01 264);
+  --muted-foreground: oklch(46% 0.02 264);
+
+  --accent: oklch(96% 0.01 264);
+  --accent-foreground: oklch(14.5% 0.025 264);
+
+  --destructive: oklch(57.7% 0.245 27.325);
+  --destructive-foreground: oklch(100% 0 0);
+
+  --border: oklch(91% 0.01 264);
+  --input: oklch(91% 0.01 264);
+  --ring: oklch(62.3% 0.214 259.815);
+
+  --chart-1: oklch(62.3% 0.214 259.815);
+  --chart-2: oklch(69.6% 0.17 162.48);
+  --chart-3: oklch(76.9% 0.188 70.08);
+  --chart-4: oklch(63.7% 0.237 25.331);
+  --chart-5: oklch(58.5% 0.233 277.117);
+
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(14.5% 0.025 264);
+  --foreground: oklch(98% 0.01 264);
+
+  --card: oklch(19% 0.025 264);
+  --card-foreground: oklch(98% 0.01 264);
+  --popover: oklch(19% 0.025 264);
+  --popover-foreground: oklch(98% 0.01 264);
+
+  --primary: oklch(70.7% 0.165 254.624);
+  --primary-foreground: oklch(14.5% 0.025 264);
+
+  --secondary: oklch(24% 0.02 264);
+  --secondary-foreground: oklch(98% 0.01 264);
+
+  --muted: oklch(24% 0.02 264);
+  --muted-foreground: oklch(65% 0.02 264);
+
+  --accent: oklch(24% 0.02 264);
+  --accent-foreground: oklch(98% 0.01 264);
+
+  --destructive: oklch(51.3% 0.19 27.325);
+  --destructive-foreground: oklch(98% 0.01 264);
+
+  --border: oklch(100% 0 0 / 10%);
+  --input: oklch(100% 0 0 / 15%);
+  --ring: oklch(70.7% 0.165 254.624);
+
+  --chart-1: oklch(70.7% 0.165 254.624);
+  --chart-2: oklch(69.6% 0.17 162.48);
+  --chart-3: oklch(76.9% 0.188 70.08);
+  --chart-4: oklch(70.5% 0.213 25.331);
+  --chart-5: oklch(70.2% 0.183 293.541);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }

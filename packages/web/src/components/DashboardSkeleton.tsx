@@ -1,42 +1,36 @@
-function Block({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800 ${className}`} />
-}
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function DashboardSkeleton() {
   return (
-    <div className="min-h-screen p-6 max-w-6xl mx-auto">
-      {/* Header */}
+    <div className="mx-auto min-h-screen max-w-6xl p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <Block className="h-7 w-64" />
-          <Block className="h-4 w-48" />
-          <Block className="h-4 w-40" />
-          <Block className="h-4 w-56" />
-          <Block className="h-4 w-56" />
+          <Skeleton className="h-7 w-64" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-4 w-56" />
         </div>
-        <Block className="h-8 w-24" />
+        <Skeleton className="h-8 w-8 shrink-0" />
       </div>
 
-      {/* Freshness */}
       <div className="mb-4">
-        <Block className="h-4 w-32" />
+        <Skeleton className="h-4 w-32" />
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Block className="h-20" />
-        <Block className="h-20" />
-        <Block className="h-20" />
-        <Block className="h-20" />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
       </div>
 
-      {/* Chart-sized blocks */}
       <div className="mt-6">
-        <Block className="h-64" />
+        <Skeleton className="h-64" />
       </div>
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Block className="h-48" />
-        <Block className="h-48" />
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
       </div>
     </div>
   )

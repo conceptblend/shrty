@@ -1,4 +1,6 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 interface ClickChartProps {
   data: { date: string; clicks: number }[]
@@ -6,26 +8,55 @@ interface ClickChartProps {
 
 export function ClickChart({ data }: ClickChartProps) {
   const sorted = [...data].reverse()
+  const reduceMotion = usePrefersReducedMotion()
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800">
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
-        Clicks Over Time
-      </h3>
-      <ResponsiveContainer width="100%" height={250}>
-        <LineChart data={sorted}>
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 12 }}
-            tickFormatter={(v) =>
-              new Date(v).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-            }
-          />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip labelFormatter={(v) => new Date(v).toLocaleDateString()} />
-          <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} dot={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Clicks Over Time
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={sorted}>
+            <CartesianGrid stroke="var(--border)" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
+              tickLine={false}
+              axisLine={{ stroke: 'var(--border)' }}
+              tickFormatter={(v) =>
+                new Date(v).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+              }
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip
+              labelFormatter={(v) => new Date(v).toLocaleDateString()}
+              contentStyle={{
+                background: 'var(--popover)',
+                color: 'var(--popover-foreground)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 12,
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="clicks"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={!reduceMotion}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   )
 }

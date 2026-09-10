@@ -35,4 +35,13 @@ describe('generateHash', () => {
     const sorted = [...hashes].sort()
     expect(hashes).not.toEqual(sorted)
   })
+
+  it('does not share a long common prefix across sequential IDs', () => {
+    // Regression test: a degenerate round function once left the top half of
+    // the Feistel output constant for every ID, so sequential IDs produced
+    // hashes differing only in their last character or two.
+    const hashes = Array.from({ length: 20 }, (_, i) => generateHash(i + 1, key))
+    const prefixes = new Set(hashes.map((hash) => hash.slice(0, 4)))
+    expect(prefixes.size).toBeGreaterThan(1)
+  })
 })

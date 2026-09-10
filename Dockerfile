@@ -42,4 +42,4 @@ COPY --from=base /app/drizzle.config.ts ./
 ENV SHRTY_STATIC_ROOT=packages/web/dist
 EXPOSE 3000
 
-CMD ["sh", "-c", "pnpm exec drizzle-kit migrate && node packages/api/dist/index.js"]
+CMD ["sh", "-c", "pnpm exec drizzle-kit migrate && node packages/api/dist/api/src/index.js"]

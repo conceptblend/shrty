@@ -1,19 +1,22 @@
-import { useTheme } from '../hooks/useTheme'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from '@/hooks/useTheme'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode'
 
   return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-    >
-      <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span>
-      {isDark ? 'Dark' : 'Light'}
-    </button>
+    <Tooltip>
+      <TooltipTrigger
+        render={<Button type="button" variant="outline" size="icon" onClick={toggleTheme} />}
+      >
+        {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+        <span className="sr-only">{label}</span>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }

@@ -6,8 +6,8 @@ const HASH_LENGTH = 7
 const MAX_HASH_VALUE = BASE ** BigInt(HASH_LENGTH)
 const FEISTEL_ROUNDS = 4
 
-function deriveRoundKey(key: string, round: number): bigint {
-  const data = new TextEncoder().encode(`${key}:${round}`)
+function feistelRound(right: bigint, key: string, round: number): bigint {
+  const data = new TextEncoder().encode(`${key}:${round}:${right}`)
   const hash = createHash('sha256').update(data).digest()
   return hash.readBigUInt64BE(0) & ((1n << 32n) - 1n)
 }
@@ -19,8 +19,7 @@ function feistelEncrypt(id: number, key: string): bigint {
   let right = n & mask
 
   for (let i = 0; i < FEISTEL_ROUNDS; i++) {
-    const roundKey = deriveRoundKey(key, i)
-    const newRight = left ^ roundKey
+    const newRight = left ^ feistelRound(right, key, i)
     left = right
     right = newRight
   }
