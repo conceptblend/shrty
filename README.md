@@ -43,15 +43,31 @@ Visit `http://localhost:5173/a/<hash>` in a browser (the dashboard is served by 
 
 Copy `.env.example` to `.env` and fill in:
 
-| Variable        | Required | Default          | Description                                        |
-| --------------- | -------- | ---------------- | -------------------------------------------------- |
-| `SHRTY_API_KEY` | Yes      | —                | Secret key for API authentication (min 16 chars)   |
-| `DATABASE_URL`  | Yes      | —                | PostgreSQL connection string                       |
-| `FEISTEL_KEY`   | Yes      | —                | Secret key for hash generation (min 16 chars)      |
-| `SHRTY_DOMAIN`  | No       | `localhost:3000` | Domain for generated short URLs                    |
-| `PORT`          | No       | `3000`           | Server port                                        |
-| `NODE_ENV`      | No       | `development`    | `development`, `production`, or `test`             |
-| `LOG_LEVEL`     | No       | `info`           | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+| Variable        | Required | Default                 | Description                                        |
+| --------------- | -------- | ----------------------- | -------------------------------------------------- |
+| `SHRTY_API_KEY` | Yes      | —                       | Secret key for API authentication (min 16 chars)   |
+| `DATABASE_URL`  | Yes      | —                       | PostgreSQL connection string                       |
+| `FEISTEL_KEY`   | Yes      | —                       | Secret key for hash generation (min 16 chars)      |
+| `SHRTY_DOMAIN`  | No       | `http://localhost:3000` | Public base URL used to build short links          |
+| `PORT`          | No       | `3000`                  | Server port                                        |
+| `NODE_ENV`      | No       | `development`           | `development`, `production`, or `test`             |
+| `LOG_LEVEL`     | No       | `info`                  | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+
+### Short link domain
+
+`SHRTY_DOMAIN` is the public base URL the API uses to build the `shortUrl` it returns. Set it to
+the host people actually visit:
+
+| Where          | Value                                 |
+| -------------- | ------------------------------------- |
+| Local dev      | `http://localhost:3000`               |
+| Docker Compose | `http://localhost:3000` (the default) |
+| Fly.io         | `https://<your-app>.fly.dev`          |
+| Custom domain  | `https://shrty.yourdomain.com`        |
+
+The value can be a full URL (`https://…`) or a bare host (`shrty.fly.dev`, treated as `https`).
+Trailing slashes are stripped and paths are rejected. The scheme matters locally: the dev API
+serves plain HTTP, so `https://localhost:3000` would produce links the browser cannot open.
 
 ### Feistel Key Security
 
@@ -94,19 +110,24 @@ TMP_API_KEY=$(openssl rand -hex 32) && echo "Store API KEY securely: $TMP_API_KE
 TMP_FEISTEL_KEY=$(openssl rand -hex 32) && echo "Store FEISTEL KEY securely: $TMP_FEISTEL_KEY"
 fly secrets set SHRTY_API_KEY=$TMP_API_KEY
 fly secrets set FEISTEL_KEY=$TMP_FEISTEL_KEY
-fly secrets set SHRTY_DOMAIN=shrty.fly.dev
+fly secrets set SHRTY_DOMAIN=https://<your-app>.fly.dev
 
 # Deploy
 fly deploy
 ```
 
-After deploy, update `SHRTY_DOMAIN` in `fly.toml` to your actual domain, then `fly deploy` again.
+`SHRTY_DOMAIN` is a secret, not a `fly.toml` setting. To change it later, update the secret —
+Fly restarts the machines automatically:
+
+```bash
+fly secrets set SHRTY_DOMAIN=https://new.example.com
+```
 
 For a custom domain:
 
 ```bash
 fly certs add shrty.yourdomain.com
-# Then update SHRTY_DOMAIN to shrty.yourdomain.com and redeploy
+fly secrets set SHRTY_DOMAIN=https://shrty.yourdomain.com
 ```
 
 ## Development
@@ -124,6 +145,8 @@ pnpm db:migrate       # Apply migrations
 ```bash
 curl -H "X-Forwarded-For: 8.8.8.8" http://localhost:3000/<hash>
 ```
+
+**Note on short links in dev:** with the default config the API returns `http://localhost:3000/<hash>`. Links copied from the dashboard use the browser origin (`http://localhost:5173`) instead, and Vite only proxies `/api`, so those copies will not redirect — test with the API's `shortUrl` (port 3000) in local dev.
 
 ## Project Structure
 

@@ -82,9 +82,11 @@ Run a single test file: `pnpm vitest run packages/api/src/lib/hash.test.ts`
 6. **Analytics API (`/api/v1/analytics/:hash`) is intentionally public** — no `Authorization`
    header required, per PRD. Don't add auth middleware to it without checking the PRD first.
 
-7. **`SHRTY_DOMAIN` defaults to `localhost:3000`.** It must be set as a Fly secret
-   (`fly secrets set SHRTY_DOMAIN=<your-app>.fly.dev`) or every `shortUrl` returned by the
-   create-link API will point at localhost.
+7. **`SHRTY_DOMAIN` is a public base URL, defaulting to `http://localhost:3000`.** It must be
+   set as a Fly secret (`fly secrets set SHRTY_DOMAIN=https://<your-app>.fly.dev`) or every
+   `shortUrl` returned by the create-link API will point at localhost. A bare host is
+   normalized to `https://`; the links service no longer prepends a scheme, so
+   `http://localhost:3000` stays HTTP for local dev.
 
 8. **`.env` loading uses an explicit path** (`resolve(process.cwd(), '../../.env')` in
    `packages/api/src/config.ts`) because dotenv's default only looks in the CWD, and the

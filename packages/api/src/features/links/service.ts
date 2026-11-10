@@ -32,7 +32,7 @@ export class LinkService {
     if (existing) {
       return {
         hash: existing.hash,
-        shortUrl: `https://${this.config.domain}/${existing.hash}`,
+        shortUrl: `${this.config.domain}/${existing.hash}`,
         destinationUrl: existing.destinationUrl,
         createdAt: existing.createdAt,
         expiresAt: existing.expiresAt,
@@ -53,7 +53,7 @@ export class LinkService {
 
     return {
       hash,
-      shortUrl: `https://${this.config.domain}/${hash}`,
+      shortUrl: `${this.config.domain}/${hash}`,
       destinationUrl: url.toString(),
       createdAt: row.createdAt.toISOString(),
       expiresAt: row.expiresAt?.toISOString() ?? null,

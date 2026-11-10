@@ -6,7 +6,7 @@ import type { AppConfig } from '../../config.js'
 const testConfig: AppConfig = {
   port: 3000,
   databaseUrl: 'postgresql://test',
-  domain: 'localhost:3000',
+  domain: 'http://localhost:3000',
   feistelKey: 'test-secret-key-for-feistel',
   apiKey: 'test-api-key-12345678',
   staticRoot: './dist',
@@ -30,7 +30,7 @@ describe('LinkService', () => {
       const result = await service.create({ url: 'https://example.com' })
 
       expect(result.hash).toHaveLength(7)
-      expect(result.shortUrl).toBe(`https://localhost:3000/${result.hash}`)
+      expect(result.shortUrl).toBe(`http://localhost:3000/${result.hash}`)
       expect(result.destinationUrl).toBe('https://example.com/')
       expect(result.createdAt).toBeDefined()
     })

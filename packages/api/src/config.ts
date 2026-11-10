@@ -5,10 +5,29 @@ import { z } from 'zod'
 // Load .env from project root
 config({ path: resolve(process.cwd(), '../../.env') })
 
+/**
+ * Normalizes SHRTY_DOMAIN into a base URL with no trailing slash.
+ * Accepts either a bare host (`shrty.fly.dev`) or a full URL
+ * (`https://shrty.fly.dev`); bare hosts default to https.
+ */
+export function normalizeDomain(value: string): string {
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`
+  return withScheme.replace(/\/+$/, '')
+}
+
 const configSchema = z.object({
   port: z.coerce.number().default(3000),
   databaseUrl: z.string().url(),
-  domain: z.string().default('localhost:3000'),
+  domain: z
+    .string()
+    .trim()
+    .min(1)
+    .default('http://localhost:3000')
+    .transform(normalizeDomain)
+    .refine((value) => /^https?:\/\/[^/\s]+$/i.test(value), {
+      message:
+        'SHRTY_DOMAIN must be a host (shrty.fly.dev) or base URL (https://shrty.fly.dev), without a path',
+    }),
   feistelKey: z.string().min(16),
   apiKey: z.string().min(16),
   staticRoot: z.string().default('../../packages/web/dist'),

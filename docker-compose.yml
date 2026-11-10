@@ -6,7 +6,7 @@ services:
     environment:
       DATABASE_URL: postgresql://shrty:shrty@postgres:5432/shrty
       SHRTY_API_KEY: ${SHRTY_API_KEY:-change-me-to-a-secret-key-at-least-16-chars}
-      SHRTY_DOMAIN: ${SHRTY_DOMAIN:-localhost:3000}
+      SHRTY_DOMAIN: ${SHRTY_DOMAIN:-http://localhost:3000}
       SHRTY_STATIC_ROOT: packages/web/dist
       FEISTEL_KEY: ${FEISTEL_KEY:-change-this-in-production-at-least-16}
       PORT: '3000'

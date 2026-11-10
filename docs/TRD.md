@@ -966,7 +966,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://shrty:shrty@postgres:5432/shrty
       - SHRTY_API_KEY=${SHRTY_API_KEY}
-      - SHRTY_DOMAIN=${SHRTY_DOMAIN:-localhost:3000}
+      - SHRTY_DOMAIN=${SHRTY_DOMAIN:-http://localhost:3000}
       - FEISTEL_KEY=${FEISTEL_KEY}
     depends_on:
       postgres:
@@ -1018,7 +1018,7 @@ SHRTY_API_KEY=your-secret-api-key-here
 DATABASE_URL=postgresql://shrty:shrty@localhost:5432/shrty
 
 # Optional
-SHRTY_DOMAIN=localhost:3000          # Used to generate short URLs
+SHRTY_DOMAIN=http://localhost:3000   # Public base URL for generated short links
 FEISTEL_KEY=change-this-in-production # Secret key for Feistel cipher
 PORT=3000
 NODE_ENV=production
